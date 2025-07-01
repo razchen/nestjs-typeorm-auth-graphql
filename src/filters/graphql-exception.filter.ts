@@ -1,18 +1,23 @@
-import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
-import { GqlArgumentsHost } from '@nestjs/graphql';
+import { Catch, ExceptionFilter, HttpException } from '@nestjs/common';
+import { GraphQLError } from 'graphql';
 
 @Catch()
 export class GraphQLExceptionFilter implements ExceptionFilter {
-  catch(exception: any, host: ArgumentsHost) {
-    const gqlHost = GqlArgumentsHost.create(host);
+  catch(exception: any) {
+    if (exception instanceof HttpException) {
+      throw new GraphQLError(exception.message, {
+        extensions: {
+          code: exception.getStatus(),
+        },
+      });
+    }
 
     if (exception instanceof Error) {
-      // Optionally log the error here
+      console.error(exception);
 
-      return {
-        message: 'Internal server error',
+      throw new GraphQLError('Internal server error', {
         extensions: { code: 'INTERNAL_SERVER_ERROR' },
-      };
+      });
     }
 
     throw exception;

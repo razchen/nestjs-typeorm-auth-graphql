@@ -1,5 +1,4 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { RegisterDto } from './dto/register.dto';
 import { User } from 'src/user/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -7,7 +6,7 @@ import { Tokens, UserRole } from 'src/types/Auth';
 import * as jwt from 'jsonwebtoken';
 import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
-import { RefreshDto } from './dto/refresh.dto';
+import { RegisterInput } from './dto/register.input';
 
 type UserWithTokens = Tokens & {
   id: number;
@@ -47,8 +46,11 @@ export class AuthService {
     return user.hashedRefreshToken;
   }
 
-  async register(dto: RegisterDto): Promise<UserWithTokens> {
-    const user = this.userRepository.create({ ...dto, roles: [UserRole.USER] });
+  async register(input: RegisterInput): Promise<UserWithTokens> {
+    const user = this.userRepository.create({
+      ...input,
+      roles: [UserRole.USER],
+    });
     const created = await this.userRepository.save(user);
     const { accessToken, refreshToken } = this.generateTokens(
       user.id,
@@ -99,25 +101,32 @@ export class AuthService {
     };
   }
 
-  async refresh(userId: number, dto: RefreshDto): Promise<Tokens> {
-    const user = await this.userRepository.findOneOrFail({
-      where: { id: userId },
-    });
+  async refresh(refreshToken: string): Promise<Tokens> {
+    try {
+      const secret: string = this.configService.getOrThrow('JWT_SECRET');
+      const decoded = jwt.verify(refreshToken, secret, {
+        ignoreExpiration: true,
+      }) as { id: number };
+      const userId = decoded.id;
 
-    const valid = await bcrypt.compare(
-      dto.refreshToken,
-      user.hashedRefreshToken,
-    );
-    if (!valid) throw new UnauthorizedException('Token expired');
+      const user = await this.userRepository
+        .createQueryBuilder('user')
+        .addSelect('user.hashedRefreshToken')
+        .where('user.id = :id', { id: userId })
+        .getOneOrFail();
 
-    const { accessToken, refreshToken } = this.generateTokens(
-      user.id,
-      user.email,
-      user.roles,
-    );
+      const valid = await bcrypt.compare(refreshToken, user.hashedRefreshToken);
+      if (!valid) throw new UnauthorizedException('Token expired');
 
-    await this.updateHashedRefreshToken(user.id, refreshToken);
+      const { accessToken, refreshToken: newRefreshToken } =
+        this.generateTokens(user.id, user.email, user.roles);
 
-    return { accessToken, refreshToken };
+      await this.updateHashedRefreshToken(user.id, newRefreshToken);
+
+      return { accessToken, refreshToken: newRefreshToken };
+    } catch (e) {
+      console.error(e);
+      throw new UnauthorizedException('Invalid token');
+    }
   }
 }

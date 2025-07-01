@@ -39,6 +39,11 @@ type ItemGraphQL {
   updatedAt: DateTime!
 }
 
+type TokensGraphQL {
+  accessToken: String!
+  refreshToken: String!
+}
+
 type Query {
   getAllUsers: [UserGraphQL!]!
   getUserById(id: Int!): UserGraphQL!
@@ -47,6 +52,9 @@ type Query {
 }
 
 type Mutation {
+  register(input: RegisterInput!): UserGraphQL!
+  login(input: LoginInput!): TokensGraphQL!
+  refresh(input: RefreshInput!): TokensGraphQL!
   createUser(input: CreateUserInput!): UserGraphQL!
   updateUser(id: Int!, input: UpdateUserInput!): UserGraphQL!
   deleteUser(id: Int!): Boolean!
@@ -54,6 +62,21 @@ type Mutation {
   updateItem(id: Float!, input: UpdateItemInput!): ItemGraphQL!
   deleteItem(id: Float!): Boolean!
   updateItemTags(id: Float!, input: UpdateTagsInput!): ItemGraphQL!
+}
+
+input RegisterInput {
+  name: String!
+  email: String!
+  password: String!
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+input RefreshInput {
+  refreshToken: String!
 }
 
 input CreateUserInput {

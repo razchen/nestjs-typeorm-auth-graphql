@@ -1,8 +1,7 @@
 import { Args, Context, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { ItemGraphQL } from './item.graphql';
 import { ItemService } from './item.service';
-import { Request, UseGuards } from '@nestjs/common';
-import { RequestWithUser } from 'src/types/Auth';
+import { UseGuards } from '@nestjs/common';
 import { CreateItemInput } from './dto/create-item.input';
 import { UpdateItemInput } from './dto/update-item.input';
 import { UpdateTagsInput } from './dto/update-tags.input';
@@ -31,11 +30,11 @@ export class ItemResolver {
 
   @Mutation(() => ItemGraphQL)
   async updateItem(
-    @Request() req: RequestWithUser,
+    @Context() context,
     @Args('id') id: number,
     @Args('input') input: UpdateItemInput,
   ) {
-    const userId = req.user.id;
+    const userId = context.req.user.id as number;
     return await this.itemService.update(id, userId, input);
   }
 
