@@ -27,7 +27,7 @@ export class User {
   @Column({ select: false, default: null })
   hashedRefreshToken: string;
 
-  @Column({ select: false, type: 'json' })
+  @Column({ type: 'json' })
   roles: UserRole[];
 
   @OneToMany(() => Item, (item) => item.user, {

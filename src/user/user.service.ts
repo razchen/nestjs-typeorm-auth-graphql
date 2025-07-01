@@ -1,11 +1,12 @@
 import * as bcrypt from 'bcrypt';
 
 import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserInput } from './dto/create-user.input';
+import { UpdateUserInput } from './dto/update-user.input';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
+import { UserRole } from 'src/types/Auth';
 
 @Injectable()
 export class UserService {
@@ -13,11 +14,12 @@ export class UserService {
     @InjectRepository(User) private readonly userRepository: Repository<User>,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
-    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+  async create(input: CreateUserInput): Promise<User> {
+    const hashedPassword = await bcrypt.hash(input.password, 10);
 
     const user = this.userRepository.create({
-      ...createUserDto,
+      ...input,
+      roles: [UserRole.USER],
       password: hashedPassword,
     });
 
@@ -31,12 +33,13 @@ export class UserService {
   }
 
   async findOne(id: number): Promise<User> {
-    return await this.userRepository.findOneOrFail({ where: { id } });
+    const user = await this.userRepository.findOneOrFail({ where: { id } });
+    return user;
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+  async update(id: number, input: UpdateUserInput): Promise<User> {
     let user = await this.userRepository.findOneOrFail({ where: { id } });
-    user = { ...user, ...updateUserDto };
+    user = { ...user, ...input };
     const updated = await this.userRepository.save(user);
 
     return updated;

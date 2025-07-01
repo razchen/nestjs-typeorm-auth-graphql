@@ -1,3 +1,4 @@
+import { registerEnumType } from '@nestjs/graphql';
 import { Request } from 'express';
 
 export enum UserRole {
@@ -19,3 +20,7 @@ export type Tokens = {
   accessToken: string;
   refreshToken: string;
 };
+
+registerEnumType(UserRole, {
+  name: 'UserRole',
+});

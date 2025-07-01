@@ -1,0 +1,45 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type UserGraphQL {
+  id: Float!
+  name: String!
+  email: String!
+  roles: [UserRole!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Query {
+  getAllUsers: [UserGraphQL!]!
+  getUserById(id: Int!): UserGraphQL!
+}
+
+type Mutation {
+  createUser(input: CreateUserInput!): UserGraphQL!
+  updateUser(id: Int!, input: UpdateUserInput!): UserGraphQL!
+  deleteUser(id: Int!): Boolean!
+}
+
+input CreateUserInput {
+  name: String!
+  email: String!
+  password: String!
+}
+
+input UpdateUserInput {
+  name: String
+  email: String
+  password: String
+}
