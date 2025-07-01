@@ -7,7 +7,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import * as jwt from 'jsonwebtoken';
-import { JwtPayload } from 'src/types/Auth';
+import { JwtPayload, RequestWithUser } from 'src/types/Auth';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -15,7 +15,7 @@ export class JwtAuthGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     const ctx = GqlExecutionContext.create(context);
-    const req = ctx.getContext().req;
+    const req = ctx.getContext().req as RequestWithUser;
 
     const authHeader = req.headers['authorization'] as string;
 
