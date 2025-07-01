@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { CreateItemDto } from './dto/create-item.dto';
-import { UpdateItemDto } from './dto/update-item.dto';
+import { CreateItemInput } from './dto/create-item.input';
+import { UpdateItemInput } from './dto/update-item.input';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Item } from './entities/item.entity';
 import { Repository } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { Tag } from './entities/tag.entity';
-import { UpdateTagsDto } from './dto/update-tags.dto';
+import { UpdateTagsInput } from './dto/update-tags.input';
 
 @Injectable()
 export class ItemService {
@@ -15,14 +15,17 @@ export class ItemService {
     @InjectRepository(Tag) private readonly tagRepository: Repository<Tag>,
   ) {}
 
-  async create(userId: number, createItemDto: CreateItemDto): Promise<Item> {
+  async create(
+    userId: number,
+    createItemInput: CreateItemInput,
+  ): Promise<Item> {
     const item = this.itemRepository.create({
-      ...createItemDto,
+      ...createItemInput,
       user: { id: userId },
     });
     const saved = await this.itemRepository.save(item);
 
-    return saved;
+    return await this.findOne(saved.id);
   }
 
   async findAll(): Promise<Item[]> {
@@ -39,15 +42,15 @@ export class ItemService {
   async update(
     id: number,
     userId: number,
-    updateItemDto: UpdateItemDto,
+    updateItemInput: UpdateItemInput,
   ): Promise<Item> {
     const item = await this.itemRepository.findOneOrFail({ where: { id } });
-    item.title = updateItemDto.title;
-    item.description = updateItemDto.description;
+    item.title = updateItemInput.title;
+    item.description = updateItemInput.description;
     item.user = { id: userId } as User;
     const updated = await this.itemRepository.save(item);
 
-    return updated;
+    return await this.findOne(updated.id);
   }
 
   async remove(id: number): Promise<string> {
@@ -57,8 +60,8 @@ export class ItemService {
     return 'Item deleted';
   }
 
-  async updateTags(itemId: number, dto: UpdateTagsDto): Promise<string> {
-    const { tagNames } = dto;
+  async updateTags(itemId: number, input: UpdateTagsInput): Promise<string> {
+    const { tagNames } = input;
     const item = await this.itemRepository.findOneOrFail({
       where: { id: itemId },
       relations: ['tags'],
@@ -67,8 +70,6 @@ export class ItemService {
     const tags: Tag[] = [];
     for (const tagName of tagNames) {
       let tag = await this.tagRepository.findOneBy({ content: tagName });
-
-      console.log('exists', tag);
 
       if (!tag) {
         const savedTag = this.tagRepository.create({ content: tagName });

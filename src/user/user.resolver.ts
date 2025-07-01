@@ -3,7 +3,10 @@ import { UserGraphQL } from './user.graphql';
 import { UserService } from './user.service';
 import { UpdateUserInput } from './dto/update-user.input';
 import { CreateUserInput } from './dto/create-user.input';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Resolver(() => UserGraphQL)
 export class UserResolver {
   constructor(private readonly userService: UserService) {}

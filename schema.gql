@@ -21,15 +21,39 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type TagGraphQL {
+  id: Float!
+  content: String!
+  items: [ItemGraphQL!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type ItemGraphQL {
+  id: Float!
+  user: UserGraphQL!
+  title: String!
+  description: String!
+  tags: [TagGraphQL!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
 type Query {
   getAllUsers: [UserGraphQL!]!
   getUserById(id: Int!): UserGraphQL!
+  getAllItems: [ItemGraphQL!]!
+  getItemById(id: Int!): ItemGraphQL!
 }
 
 type Mutation {
   createUser(input: CreateUserInput!): UserGraphQL!
   updateUser(id: Int!, input: UpdateUserInput!): UserGraphQL!
   deleteUser(id: Int!): Boolean!
+  createItem(input: CreateItemInput!): ItemGraphQL!
+  updateItem(id: Float!, input: UpdateItemInput!): ItemGraphQL!
+  deleteItem(id: Float!): Boolean!
+  updateItemTags(id: Float!, input: UpdateTagsInput!): ItemGraphQL!
 }
 
 input CreateUserInput {
@@ -42,4 +66,18 @@ input UpdateUserInput {
   name: String
   email: String
   password: String
+}
+
+input CreateItemInput {
+  title: String!
+  description: String!
+}
+
+input UpdateItemInput {
+  title: String!
+  description: String!
+}
+
+input UpdateTagsInput {
+  tagNames: [String!]!
 }

@@ -13,6 +13,11 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
       driver: ApolloDriver,
       playground: true,
       autoSchemaFile: 'schema.gql',
+      context: ({ req }) => ({ req }),
+      formatError: (err) => ({
+        message: err.message,
+        code: err.extensions?.code || 'INTERNAL_SERVER_ERROR',
+      }),
     }),
     ConfigModule.forRoot({ isGlobal: true }),
     AuthModule,
