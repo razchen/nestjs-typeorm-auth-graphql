@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { User } from 'src/user/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -47,6 +51,9 @@ export class AuthService {
   }
 
   async register(input: RegisterInput): Promise<UserWithTokens> {
+    const exists = await this.userRepository.findOneBy({ email: input.email });
+    if (exists) throw new BadRequestException('User already exists');
+
     const user = this.userRepository.create({
       ...input,
       roles: [UserRole.USER],
@@ -73,6 +80,7 @@ export class AuthService {
     const user = await this.userRepository
       .createQueryBuilder('user')
       .addSelect('user.password')
+      .addSelect('user.hashedRefreshToken')
       .where('user.email = :email', { email })
       .getOneOrFail();
 

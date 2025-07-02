@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { UserRole } from 'src/types/Auth';
+import { Pagination } from 'src/types/Response';
 
 @Injectable()
 export class UserService {
@@ -28,27 +29,55 @@ export class UserService {
     return saved;
   }
 
-  async findAll(): Promise<User[]> {
-    return await this.userRepository.find();
+  async findAll(
+    page: number = 1,
+    limit: number = 30,
+  ): Promise<Pagination<User[]>> {
+    const [users, total] = await this.userRepository.findAndCount({
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    return {
+      items: users,
+      total,
+      page,
+      limit,
+    };
   }
 
   async findOne(id: number): Promise<User> {
-    const user = await this.userRepository.findOneOrFail({ where: { id } });
+    const user = await this.userRepository.findOneOrFail({
+      where: { id },
+    });
     return user;
   }
 
   async update(id: number, input: UpdateUserInput): Promise<User> {
-    let user = await this.userRepository.findOneOrFail({ where: { id } });
-    user = { ...user, ...input };
+    const user = await this.userRepository.findOneOrFail({
+      where: { id },
+    });
+    if (input.name) {
+      user.name = input.name;
+    }
+
+    if (input.email) {
+      user.email = input.email;
+    }
+
+    if (input.password) {
+      user.password = await bcrypt.hash(input.password, 10);
+    }
+
     const updated = await this.userRepository.save(user);
 
     return updated;
   }
 
-  async remove(id: number): Promise<string> {
+  async remove(id: number): Promise<boolean> {
     await this.userRepository.findOneOrFail({ where: { id } });
     await this.userRepository.delete({ id });
 
-    return 'User deleted';
+    return true;
   }
 }

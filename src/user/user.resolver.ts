@@ -5,15 +5,17 @@ import { UpdateUserInput } from './dto/update-user.input';
 import { CreateUserInput } from './dto/create-user.input';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { PaginatedUsersGraphQL } from './paginated-users.graphql';
 
 @UseGuards(JwtAuthGuard)
 @Resolver(() => UserGraphQL)
 export class UserResolver {
   constructor(private readonly userService: UserService) {}
 
-  @Query(() => [UserGraphQL])
-  async getAllUsers() {
-    return this.userService.findAll();
+  @Query(() => PaginatedUsersGraphQL)
+  async getAllUsers(@Args('page', { type: () => Int }) page: number) {
+    const LIMIT = 30;
+    return this.userService.findAll(page, LIMIT);
   }
 
   @Query(() => UserGraphQL)

@@ -44,7 +44,9 @@ export class ItemService {
     userId: number,
     updateItemInput: UpdateItemInput,
   ): Promise<Item> {
-    const item = await this.itemRepository.findOneOrFail({ where: { id } });
+    const item = await this.itemRepository.findOneOrFail({
+      where: { id, user: { id: userId } },
+    });
     item.title = updateItemInput.title;
     item.description = updateItemInput.description;
     item.user = { id: userId } as User;
@@ -53,14 +55,14 @@ export class ItemService {
     return await this.findOne(updated.id);
   }
 
-  async remove(id: number): Promise<string> {
+  async remove(id: number): Promise<boolean> {
     await this.itemRepository.findOneOrFail({ where: { id } });
     await this.itemRepository.delete({ id });
 
-    return 'Item deleted';
+    return true;
   }
 
-  async updateTags(itemId: number, input: UpdateTagsInput): Promise<string> {
+  async updateTags(itemId: number, input: UpdateTagsInput): Promise<Item> {
     const { tagNames } = input;
     const item = await this.itemRepository.findOneOrFail({
       where: { id: itemId },
@@ -81,8 +83,8 @@ export class ItemService {
 
     item.tags = tags;
 
-    await this.itemRepository.save(item);
+    const updated = await this.itemRepository.save(item);
 
-    return 'Tags added';
+    return await this.findOne(updated.id);
   }
 }

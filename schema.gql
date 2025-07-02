@@ -21,6 +21,13 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type PaginatedUsersGraphQL {
+  items: [UserGraphQL!]!
+  page: Float!
+  limit: Float!
+  total: Float!
+}
+
 type TagGraphQL {
   id: Float!
   content: String!
@@ -44,16 +51,25 @@ type TokensGraphQL {
   refreshToken: String!
 }
 
+type UserWithTokensGraphQL {
+  id: Float!
+  name: String!
+  email: String!
+  roles: [UserRole!]!
+  accessToken: String!
+  refreshToken: String!
+}
+
 type Query {
-  getAllUsers: [UserGraphQL!]!
+  getAllUsers(page: Int!): PaginatedUsersGraphQL!
   getUserById(id: Int!): UserGraphQL!
   getAllItems: [ItemGraphQL!]!
   getItemById(id: Int!): ItemGraphQL!
 }
 
 type Mutation {
-  register(input: RegisterInput!): UserGraphQL!
-  login(input: LoginInput!): TokensGraphQL!
+  register(input: RegisterInput!): UserWithTokensGraphQL!
+  login(input: LoginInput!): UserWithTokensGraphQL!
   refresh(input: RefreshInput!): TokensGraphQL!
   createUser(input: CreateUserInput!): UserGraphQL!
   updateUser(id: Int!, input: UpdateUserInput!): UserGraphQL!

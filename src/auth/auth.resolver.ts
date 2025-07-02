@@ -1,22 +1,22 @@
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import { AuthService } from './auth.service';
 import { TokensGraphQL } from './auth.graphql';
-import { UserGraphQL } from '../user/user.graphql';
 import { RegisterInput } from './dto/register.input';
 import { LoginInput } from './dto/login.input';
 import { UnauthorizedException } from '@nestjs/common';
 import { RefreshInput } from './dto/refresh.input';
+import { UserWithTokensGraphQL } from './user-with-tokens.graphql';
 
 @Resolver()
 export class AuthResolver {
   constructor(private readonly authService: AuthService) {}
 
-  @Mutation(() => UserGraphQL)
+  @Mutation(() => UserWithTokensGraphQL)
   async register(@Args('input') input: RegisterInput) {
     return this.authService.register(input);
   }
 
-  @Mutation(() => TokensGraphQL)
+  @Mutation(() => UserWithTokensGraphQL)
   async login(@Args('input') input: LoginInput) {
     const user = await this.authService.validate(input.email, input.password);
 
