@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { Tag } from './entities/tag.entity';
 import { UpdateTagsInput } from './dto/update-tags.input';
+import { Pagination } from 'src/types/Response';
 
 @Injectable()
 export class ItemService {
@@ -28,8 +29,20 @@ export class ItemService {
     return await this.findOne(saved.id);
   }
 
-  async findAll(): Promise<Item[]> {
-    return await this.itemRepository.find({ relations: ['user', 'tags'] });
+  async findAll(
+    page: number = 0,
+    limit: number = 0,
+  ): Promise<Pagination<Item[]>> {
+    const [items, total] = await this.itemRepository.findAndCount({
+      relations: ['user', 'tags'],
+    });
+
+    return {
+      items,
+      total,
+      limit,
+      page,
+    };
   }
 
   async findOne(id: number): Promise<Item> {

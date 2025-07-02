@@ -46,6 +46,13 @@ type ItemGraphQL {
   updatedAt: DateTime!
 }
 
+type PaginatedItemsGraphQL {
+  items: [ItemGraphQL!]!
+  page: Float!
+  limit: Float!
+  total: Float!
+}
+
 type TokensGraphQL {
   accessToken: String!
   refreshToken: String!
@@ -63,7 +70,7 @@ type UserWithTokensGraphQL {
 type Query {
   getAllUsers(page: Int!): PaginatedUsersGraphQL!
   getUserById(id: Int!): UserGraphQL!
-  getAllItems: [ItemGraphQL!]!
+  getAllItems(page: Int!): PaginatedItemsGraphQL!
   getItemById(id: Int!): ItemGraphQL!
 }
 

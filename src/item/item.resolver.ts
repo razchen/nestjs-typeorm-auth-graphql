@@ -6,15 +6,17 @@ import { CreateItemInput } from './dto/create-item.input';
 import { UpdateItemInput } from './dto/update-item.input';
 import { UpdateTagsInput } from './dto/update-tags.input';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { PaginatedItemsGraphQL } from './paginated-items.graphql';
 
 @UseGuards(JwtAuthGuard)
 @Resolver()
 export class ItemResolver {
   constructor(private readonly itemService: ItemService) {}
 
-  @Query(() => [ItemGraphQL])
-  async getAllItems() {
-    return await this.itemService.findAll();
+  @Query(() => PaginatedItemsGraphQL)
+  async getAllItems(@Args('page', { type: () => Int }) page: number) {
+    const LIMIT = 30;
+    return await this.itemService.findAll(page, LIMIT);
   }
 
   @Query(() => ItemGraphQL)
